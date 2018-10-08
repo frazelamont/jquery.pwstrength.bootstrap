@@ -54,7 +54,7 @@ try {
     };
 
     validation.wordInvalidChar = function (options, word, score) {
-        if (word.match(/[\s,',"]/)) {
+        if (options.common.invalidCharsRegExp.test(word)) {
             return score;
         }
         return 0;
@@ -147,6 +147,13 @@ try {
         return word.match(/([a-zA-Z0-9].*[!,@,#,$,%,\^,&,*,?,_,~])|([!,@,#,$,%,\^,&,*,?,_,~].*[a-zA-Z0-9])/) && score;
     };
 
+    validation.wordIsACommonPassword = function (options, word, score) {
+        if ($.inArray(word, options.rules.commonPasswords) >= 0) {
+            return score;
+        }
+        return 0;
+    };
+
     rulesEngine.validation = validation;
 
     rulesEngine.executeRules = function (options, word) {
@@ -177,10 +184,6 @@ try {
                 }
             }
         });
-
-        if ($.isFunction(options.common.onScore)) {
-            totalScore = options.common.onScore(options, word, totalScore);
-        }
 
         return totalScore;
     };

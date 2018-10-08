@@ -1,6 +1,6 @@
 /*!
 * jQuery Password Strength plugin for Twitter Bootstrap
-* Version: 2.1.2
+* Version: 3.0.1
 *
 * Copyright (c) 2008-2013 Tane Piper
 * Copyright (c) 2013 Alejandro Blanco
@@ -101,7 +101,7 @@ try {
     };
 
     validation.wordInvalidChar = function (options, word, score) {
-        if (word.match(/[\s,',"]/)) {
+        if (options.common.invalidCharsRegExp.test(word)) {
             return score;
         }
         return 0;
@@ -194,6 +194,13 @@ try {
         return word.match(/([a-zA-Z0-9].*[!,@,#,$,%,\^,&,*,?,_,~])|([!,@,#,$,%,\^,&,*,?,_,~].*[a-zA-Z0-9])/) && score;
     };
 
+    validation.wordIsACommonPassword = function (options, word, score) {
+        if ($.inArray(word, options.rules.commonPasswords) >= 0) {
+            return score;
+        }
+        return 0;
+    };
+
     rulesEngine.validation = validation;
 
     rulesEngine.executeRules = function (options, word) {
@@ -225,10 +232,6 @@ try {
             }
         });
 
-        if ($.isFunction(options.common.onScore)) {
-            totalScore = options.common.onScore(options, word, totalScore);
-        }
-
         return totalScore;
     };
 }(jQuery, rulesEngine));
@@ -250,6 +253,7 @@ defaultOptions.common = {};
 defaultOptions.common.minChar = 6;
 defaultOptions.common.maxChar = 20;
 defaultOptions.common.usernameField = "#username";
+defaultOptions.common.invalidCharsRegExp = new RegExp(/[\s,'"]/);
 defaultOptions.common.userInputs = [
     // Selectors for input fields with user input
 ];
@@ -282,7 +286,8 @@ defaultOptions.rules.scores = {
     wordTwoSpecialChar: 5,
     wordUpperLowerCombo: 2,
     wordLetterNumberCombo: 2,
-    wordLetterNumberCharCombo: 2
+    wordLetterNumberCharCombo: 2,
+    wordIsACommonPassword: -100
 };
 defaultOptions.rules.activated = {
     wordNotEmail: true,
@@ -291,8 +296,8 @@ defaultOptions.rules.activated = {
     wordInvalidChar: false,
     wordSimilarToUsername: true,
     wordSequences: true,
-    wordTwoCharacterClasses: false,
-    wordRepetitions: false,
+    wordTwoCharacterClasses: true,
+    wordRepetitions: true,
     wordLowercase: true,
     wordUppercase: true,
     wordOneNumber: true,
@@ -301,13 +306,117 @@ defaultOptions.rules.activated = {
     wordTwoSpecialChar: true,
     wordUpperLowerCombo: true,
     wordLetterNumberCombo: true,
-    wordLetterNumberCharCombo: true
+    wordLetterNumberCharCombo: true,
+    wordIsACommonPassword: true
 };
 defaultOptions.rules.raisePower = 1.4;
+// List taken from https://github.com/danielmiessler/SecLists (MIT License)
+defaultOptions.rules.commonPasswords = [
+    '123456',
+    'password',
+    '12345678',
+    'qwerty',
+    '123456789',
+    '12345',
+    '1234',
+    '111111',
+    '1234567',
+    'dragon',
+    '123123',
+    'baseball',
+    'abc123',
+    'football',
+    'monkey',
+    'letmein',
+    '696969',
+    'shadow',
+    'master',
+    '666666',
+    'qwertyuiop',
+    '123321',
+    'mustang',
+    '1234567890',
+    'michael',
+    '654321',
+    'pussy',
+    'superman',
+    '1qaz2wsx',
+    '7777777',
+    'fuckyou',
+    '121212',
+    '000000',
+    'qazwsx',
+    '123qwe',
+    'killer',
+    'trustno1',
+    'jordan',
+    'jennifer',
+    'zxcvbnm',
+    'asdfgh',
+    'hunter',
+    'buster',
+    'soccer',
+    'harley',
+    'batman',
+    'andrew',
+    'tigger',
+    'sunshine',
+    'iloveyou',
+    'fuckme',
+    '2000',
+    'charlie',
+    'robert',
+    'thomas',
+    'hockey',
+    'ranger',
+    'daniel',
+    'starwars',
+    'klaster',
+    '112233',
+    'george',
+    'asshole',
+    'computer',
+    'michelle',
+    'jessica',
+    'pepper',
+    '1111',
+    'zxcvbn',
+    '555555',
+    '11111111',
+    '131313',
+    'freedom',
+    '777777',
+    'pass',
+    'fuck',
+    'maggie',
+    '159753',
+    'aaaaaa',
+    'ginger',
+    'princess',
+    'joshua',
+    'cheese',
+    'amanda',
+    'summer',
+    'love',
+    'ashley',
+    '6969',
+    'nicole',
+    'chelsea',
+    'biteme',
+    'matthew',
+    'access',
+    'yankees',
+    '987654321',
+    'dallas',
+    'austin',
+    'thunder',
+    'taylor',
+    'matrix'
+];
 
 defaultOptions.ui = {};
 defaultOptions.ui.bootstrap2 = false;
-defaultOptions.ui.bootstrap4 = false;
+defaultOptions.ui.bootstrap3 = false;
 defaultOptions.ui.colorClasses = [
     "danger", "danger", "danger", "warning", "warning", "success"
 ];
@@ -504,16 +613,16 @@ var ui = {};
         }
 
         $.each(options.ui.colorClasses, function (idx, value) {
-            if (options.ui.bootstrap4) {
-                $bar.removeClass("bg-" + value);
-            } else {
+            if (options.ui.bootstrap2 || options.ui.bootstrap3) {
                 $bar.removeClass(cssPrefix + "bar-" + value);
+            } else {
+                $bar.removeClass("bg-" + value);
             }
         });
-        if (options.ui.bootstrap4) {
-            $bar.addClass("bg-" + options.ui.colorClasses[cssClass]);
-        } else {
+        if (options.ui.bootstrap2 || options.ui.bootstrap3) {
             $bar.addClass(cssPrefix + "bar-" + options.ui.colorClasses[cssClass]);
+        } else {
+            $bar.addClass("bg-" + options.ui.colorClasses[cssClass]);
         }
         $bar.css("width", percentage + '%');
     };
@@ -580,25 +689,44 @@ var ui = {};
             $el.find("+ .popover .popover-content").html(html);
         } else {
             // It's hidden
-            popover.options.content = html;
+            if (options.ui.bootstrap2 || options.ui.bootstrap3) {
+                popover.options.content = html;
+            } else {
+                popover.config.content = html;
+            }
             $el.popover("show");
         }
     };
 
     ui.updateFieldStatus = function (options, $el, cssClass, remove) {
-        var targetClass = options.ui.bootstrap2 ? ".control-group" : ".form-group",
-            $container = $el.parents(targetClass).first();
+        var $target = $el;
+
+        if (options.ui.bootstrap2) {
+            $target = $el.parents(".control-group").first();
+        } else if (options.ui.bootstrap3) {
+            $target = $el.parents(".form-group").first();
+        }
 
         $.each(statusClasses, function (idx, css) {
-            if (!options.ui.bootstrap2) { css = "has-" + css; }
-            $container.removeClass(css);
+            if (options.ui.bootstrap3) {
+                css = "has-" + css;
+            } else if (!options.ui.bootstrap2) { // BS4
+                if (css === "error") { css = "danger"; }
+                css = "border-" + css;
+            }
+            $target.removeClass(css);
         });
 
         if (remove) { return; }
 
         cssClass = statusClasses[Math.floor(cssClass / 2)];
-        if (!options.ui.bootstrap2) { cssClass = "has-" + cssClass; }
-        $container.addClass(cssClass);
+        if (options.ui.bootstrap3) {
+            cssClass = "has-" + cssClass;
+        } else if (!options.ui.bootstrap2) { // BS4
+            if (cssClass === "error") { cssClass = "danger"; }
+            cssClass = "border-" + cssClass;
+        }
+        $target.addClass(cssClass);
     };
 
     ui.percentage = function (options, score, maximun) {
@@ -712,6 +840,9 @@ var methods = {};
                 score = Math.log(score) * Math.LOG2E;
             } else {
                 score = rulesEngine.executeRules(options, word);
+            }
+            if ($.isFunction(options.common.onScore)) {
+                score = options.common.onScore(options, word, score);
             }
         }
         ui.updateUI(options, $el, score);

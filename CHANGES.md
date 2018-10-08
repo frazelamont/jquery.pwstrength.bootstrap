@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## 3.0.1
+
+- Bugfix in progress bar colors in Bootstrap 3.
+
+## 3.0.0
+
+- Bootstrap 4 by default.
+- Improved support for Bootstrap 4.
+
+## 2.2.1
+
+- Bugfix in the common passwords rule.
+
+## 2.2.0
+
+- Add new rule to penalize common passwords.
+
+## 2.1.4
+
+- Thai localization.
+- Fix typo in German localization.
+- Activate by default the extra security rules.
+- Make the invalid chars optional rule configurable.
+
+## 2.1.3
+
+- Bugfix, call `onScore` when zxcvbn is in use too.
+
 ## 2.1.2
 
 - Fix errors in Portuguese localization.

@@ -34,6 +34,13 @@ Let's see the options of each section.
   The username field to match a password to, to ensure the user does not use
   the same value for their password.
 
+* __invalidCharsRegExp__:
+
+  Default: `new RegExp(/[\s,'"]/)` (Regular Expression)
+
+  A regular expression object to use to test for banned characters in the
+  password.
+
 * __userInputs__:
 
   Default: `[]` (Array)
@@ -179,22 +186,30 @@ Let's see the options of each section.
   The value used to modify the final score, based on the password length,
   allows you to tailor your results.
 
+* __commonPasswords__:
+
+  Default: `['123456', 'password', ...]` (Array of Strings)
+
+  A list of the most common passwords. If the user inputs a password present
+  in the list, then it gets heavily penalized.
+
 ## User Interface
 
 * __bootstrap2__:
 
   Default: `false` (Boolean)
 
-  Sets if it supports legacy Bootstrap 2 (true) or the current Bootstrap 3
-  (false), the progress bar html is different.
+  Set it to `true` to activate support for Bootstrap 2. Incompatible with `bootstrap3` option.
 
-* __bootstrap4__:
+  Bootstrap 4 is the default supported version of Bootstrap.
+
+* __bootstrap3__:
 
   Default: `false` (Boolean)
 
-  Sets if it supports unstable Bootstrap 4 (true) or the current Bootstrap 3
-  (false), the progress bar html is different. Keep in mind that the current
-  Boostrap 4 support is very basic.
+  Set it to `true` to activate support for Bootstrap 3. Incompatible with `bootstrap2` option.
+
+  Bootstrap 4 is the default supported version of Bootstrap.
 
 * __colorClasses__:
 
@@ -214,7 +229,7 @@ Let's see the options of each section.
 
   Displays the password strength in a progress bar.
 
-* __progressExtraCssClasses__: (Bootstrap 3&4 only)
+* __progressExtraCssClasses__: (Bootstrap 3 & 4 only)
 
   Default: `""` (String)
 
@@ -222,7 +237,7 @@ Let's see the options of each section.
   use of the extra classes provided by Bootstrap. The classes will be added to
   the proper DOM element depending of which version of Bootstrap is being
   used.
-  
+
   E.g.
   ```css
     div.progress.custom-class {
@@ -265,11 +280,14 @@ Let's see the options of each section.
   Default: `false` (Boolean)
 
   Displays the error messages and the verdicts in a Bootstrap popover, instead
-  of below the input field. Bootstrap tooltip.js and popover.js must to be
-  included.
+  of below the input field.
 
   If the `showVerdictsInsideProgressBar` option is active, then the verdicts
   won't appear on the popover.
+
+  _Note: In Bootstrap 4, the popper.js library is required. More details in
+  [the Bootstrap documentation](https://getbootstrap.com/docs/4.1/components/popovers/).
+  In previous versions tooltip.js and popover.js must be included._
 
 * __popoverPlacement__:
 
@@ -335,8 +353,6 @@ Let's see the options of each section.
   this setting is active, the verdict viewport is ignored and they won't appear
   on the popover if it is being showed. Also this option overrides the value of
   the _showVerdicts_ one.
-
-  This option is not available when using Bootstrap 4.
 
 * __useVerdictCssClass__:
 
